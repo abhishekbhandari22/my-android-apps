@@ -1,0 +1,1 @@
+This project shows how to integrate Google PlaceAutoComplete Widget to your application. I am also using Google LocationServices API to get the last location of the user.
