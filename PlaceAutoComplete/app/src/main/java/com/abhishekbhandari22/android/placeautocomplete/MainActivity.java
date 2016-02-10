@@ -200,7 +200,10 @@ public class MainActivity extends AppCompatActivity implements
                     // TODO: Get info about the selected place.
                     Log.i("selected ", "Place: " + place.getName());
                     Log.i("Selected", "LatLong" + place.getLatLng().toString());
-                    moveCameraToSelectedPlace(place.getLatLng());
+                    String url = makeURL(userLocation,place.getLatLng());
+                    //moveCameraToSelectedPlace(place.getLatLng());
+                    JSONParser jsonParser = new JSONParser();
+                    String json = jsonParser.getJsonFromURL(url);
                 }
 
                 @Override
@@ -224,5 +227,22 @@ public class MainActivity extends AppCompatActivity implements
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10));
         }
     }
-
+    //method for making url for HttpRequest
+    public String makeURL (LatLng sourceLatLng, LatLng destinationLatLng ){
+        String urlString = "";
+        urlString+=("http://maps.googleapis.com/maps/api/directions/json");
+        urlString+=("?origin=");// from
+        urlString+=(Double.toString(sourceLatLng.latitude));
+        urlString+=(",");
+        urlString
+                +=(Double.toString( sourceLatLng.longitude));
+        urlString+=("&destination=");// to
+        urlString
+                +=(Double.toString( destinationLatLng.latitude));
+        urlString+=(",");
+        urlString+=(Double.toString( destinationLatLng.longitude));
+        urlString+=("&sensor=false&mode=driving&alternatives=true");
+        urlString+=("&key=AIzaSyCUlhy4MAdct_UcHJ2nhF_qFZU8C6fDRMg");
+        return urlString;
+    }
 }
