@@ -1,5 +1,6 @@
 package com.abhishekbhandari22.android.placeautocomplete;
 
+import android.content.ComponentName;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mPermissionDenied;
     private Location mLocation;
     private LatLng userLocation;
+    private ConnectAsyncTask task=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements
 
         //initialize your GoogleApiClient for getting your current location
         setUpClientIfNeeded();
+
     }
     //MainActivity method
     @Override
@@ -202,8 +205,22 @@ public class MainActivity extends AppCompatActivity implements
                     Log.i("Selected", "LatLong" + place.getLatLng().toString());
                     String url = makeURL(userLocation,place.getLatLng());
                     //moveCameraToSelectedPlace(place.getLatLng());
-                    JSONParser jsonParser = new JSONParser();
-                    String json = jsonParser.getJsonFromURL(url);
+
+                    //Very bad idea to make networking calls from main thread
+                    //JSONParser jsonParser = new JSONParser();
+                    //String json = jsonParser.getJsonFromURL(url);
+
+                    //get your AsyncTask object here
+                    task = new ConnectAsyncTask(MainActivity.this, url, new ConnectAsyncTask.AsyncResponse() {
+                        @Override
+                        public void processFinish(String result) {
+                            //showJson(result);
+                            //I am getting my Json String perfectly fine
+                            //now I have to add this path to my map
+                        }
+                    });
+                    task.execute();
+
                 }
 
                 @Override
@@ -230,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements
     //method for making url for HttpRequest
     public String makeURL (LatLng sourceLatLng, LatLng destinationLatLng ){
         String urlString = "";
-        urlString+=("http://maps.googleapis.com/maps/api/directions/json");
+        urlString+=("https://maps.googleapis.com/maps/api/directions/json");
         urlString+=("?origin=");// from
         urlString+=(Double.toString(sourceLatLng.latitude));
         urlString+=(",");
@@ -244,5 +261,8 @@ public class MainActivity extends AppCompatActivity implements
         urlString+=("&sensor=false&mode=driving&alternatives=true");
         urlString+=("&key=AIzaSyCUlhy4MAdct_UcHJ2nhF_qFZU8C6fDRMg");
         return urlString;
+    }
+    private void showJson(String json){
+        Toast.makeText(this,json,Toast.LENGTH_LONG).show();
     }
 }
