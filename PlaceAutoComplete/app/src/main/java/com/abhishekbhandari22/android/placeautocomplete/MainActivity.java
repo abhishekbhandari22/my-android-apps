@@ -2,6 +2,7 @@ package com.abhishekbhandari22.android.placeautocomplete;
 
 import android.content.ComponentName;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -26,8 +27,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
 import java.util.jar.Manifest;
 
 public class MainActivity extends AppCompatActivity implements
@@ -43,8 +53,11 @@ public class MainActivity extends AppCompatActivity implements
     private final int LOCATION_PERMISSION_REQUEST_CODE=1;
     private boolean mPermissionDenied;
     private Location mLocation;
+    private Marker userMarker;
     private LatLng userLocation;
     private ConnectAsyncTask task=null;
+    private Polyline line;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,6 +154,9 @@ public class MainActivity extends AppCompatActivity implements
             if(mLocation!=null){
                 userLocation=new LatLng(mLocation.getLatitude(),mLocation.getLongitude());
                if(mMap!=null) {
+                   //if ((userMarker!=null))
+                       //userMarker.remove();
+
                    mMap.addMarker(new MarkerOptions().position(userLocation));
                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 10));
                }
@@ -214,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements
                     task = new ConnectAsyncTask(MainActivity.this, url, new ConnectAsyncTask.AsyncResponse() {
                         @Override
                         public void processFinish(String result) {
+                            drawPath(result);
                             //showJson(result);
                             //I am getting my Json String perfectly fine
                             //now I have to add this path to my map
@@ -226,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void onError(Status status) {
                     // TODO: Handle the error.
-                    Log.i("error ", "An error occurred: " + status);
+                    Log.i("onError", "An error occurred: " + status);
                 }
             });
         }
@@ -264,5 +281,33 @@ public class MainActivity extends AppCompatActivity implements
     }
     private void showJson(String json){
         Toast.makeText(this,json,Toast.LENGTH_LONG).show();
+    }
+    //method to draw the path on map obtained from ConnectAsyncTask class
+    private void drawPath(String result){
+        try{
+            //Transfrom the String into JSON object
+            final JSONObject jsonObject = new JSONObject(result);
+            JSONArray routeArray = jsonObject.getJSONArray("routes");
+            JSONObject routes = routeArray.getJSONObject(0);
+            JSONObject overViewPolylines= routes.getJSONObject("overview_polyline");
+            String encodedPath = overViewPolylines.getString("points");
+            Log.i("EncoddedPath: ", encodedPath);
+
+            List<LatLng> list =PolyUtil.decode(encodedPath);
+            if(mMap!=null){
+                if(line!=null)
+                    line.remove();
+                line = mMap.addPolyline(new PolylineOptions()
+                        .addAll(list)
+                        .width(12)
+                        .color(Color.parseColor("#05b1fb"))
+                        .geodesic(true)
+                );
+            }
+
+
+        }catch (JSONException j){
+
+        }
     }
 }
