@@ -27,6 +27,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -53,8 +54,9 @@ public class MainActivity extends AppCompatActivity implements
     private final int LOCATION_PERMISSION_REQUEST_CODE=1;
     private boolean mPermissionDenied;
     private Location mLocation;
-    private Marker userMarker;
+    private Marker userMarker,destMarker;
     private LatLng userLocation;
+    private Place destination;
     private ConnectAsyncTask task=null;
     private Polyline line;
 
@@ -154,10 +156,10 @@ public class MainActivity extends AppCompatActivity implements
             if(mLocation!=null){
                 userLocation=new LatLng(mLocation.getLatitude(),mLocation.getLongitude());
                if(mMap!=null) {
-                   //if ((userMarker!=null))
-                       //userMarker.remove();
+                   if ((userMarker!=null))
+                       userMarker.remove();
 
-                   mMap.addMarker(new MarkerOptions().position(userLocation));
+                   userMarker=mMap.addMarker(new MarkerOptions().position(userLocation));
                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 10));
                }
             }
@@ -217,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void onPlaceSelected(Place place) {
                     // TODO: Get info about the selected place.
+                    destination=place;
                     Log.i("selected ", "Place: " + place.getName());
                     Log.i("Selected", "LatLong" + place.getLatLng().toString());
                     String url = makeURL(userLocation,place.getLatLng());
@@ -291,23 +294,31 @@ public class MainActivity extends AppCompatActivity implements
             JSONObject routes = routeArray.getJSONObject(0);
             JSONObject overViewPolylines= routes.getJSONObject("overview_polyline");
             String encodedPath = overViewPolylines.getString("points");
-            Log.i("EncoddedPath: ", encodedPath);
+            Log.i("EncodedPath: ", encodedPath);
 
             List<LatLng> list =PolyUtil.decode(encodedPath);
             if(mMap!=null){
                 if(line!=null)
                     line.remove();
                 line = mMap.addPolyline(new PolylineOptions()
-                        .addAll(list)
-                        .width(12)
-                        .color(Color.parseColor("#05b1fb"))
-                        .geodesic(true)
+                                .addAll(list)
+                                .width(12)
+                                .color(Color.parseColor("#05b1fb"))
+                                .geodesic(true)
                 );
+                if(destMarker!=null)
+                    destMarker.remove();
+                destMarker=mMap.addMarker(new MarkerOptions().position(destination.getLatLng())
+                        .title(destination.getName().toString()));
+                LatLngBounds.Builder bc = new LatLngBounds.Builder();
+                bc.include(userLocation);
+                bc.include(destination.getLatLng());
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bc.build(),50));
             }
 
 
         }catch (JSONException j){
-
+            Log.e("DrawPath",j.getMessage());
         }
     }
 }
