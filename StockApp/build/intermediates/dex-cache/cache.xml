@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="C:\Users\Abhishek\AndroidStudioProjects\StockApp\libs\YahooFinanceAPI-2.0.0.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="dbb529d309d303921235acfbc042aa6be2e64d92">
+        <dex dex="C:\Users\Abhishek\AndroidStudioProjects\StockApp\app\build\intermediates\pre-dexed\debug\YahooFinanceAPI-2.0.0-bd41ad25557e9e305eb170706ce18e8edd61a627.jar" />
+    </item>
+
+</items>
